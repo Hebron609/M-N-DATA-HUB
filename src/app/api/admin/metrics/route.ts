@@ -10,6 +10,21 @@ function sameDay(a: Date, b: Date) {
   );
 }
 
+type AdminTransaction = {
+  amount: number;
+  createdAt: Date;
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  userId: string;
+  product?: {
+    category?: string | null;
+  } | null;
+};
+
+type AdminDeposit = {
+  amount: number;
+  status: "PENDING" | "COMPLETED" | "FAILED";
+};
+
 export async function GET() {
   const session = await getAdminSession();
   if (!session) {
@@ -29,10 +44,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       take: 1000,
     }),
-  ]);
+  ]) as [AdminTransaction[], AdminDeposit[]];
 
-  type TransactionWithRelations = (typeof transactions)[number];
-  const completed: TransactionWithRelations[] = transactions.filter(
+  const completed = transactions.filter(
     (t) => t.status === "COMPLETED",
   );
   const totalRevenue = completed.reduce((sum, t) => sum + t.amount, 0);

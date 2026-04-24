@@ -5,12 +5,26 @@ export const dynamic = "force-dynamic";
 
 const encoder = new TextEncoder();
 
+type StreamTransaction = {
+  amount: number;
+  createdAt: Date;
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  product?: {
+    category?: string | null;
+  } | null;
+  user?: {
+    id: string;
+    name: string | null;
+    email: string;
+  } | null;
+};
+
 function toSSE(event: string, data: unknown) {
   return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
 async function snapshot() {
-  const transactions = await prisma.transaction.findMany({
+  const transactions = (await prisma.transaction.findMany({
     take: 100,
     orderBy: { createdAt: "desc" },
     include: {
@@ -19,15 +33,14 @@ async function snapshot() {
         select: { id: true, name: true, email: true },
       },
     },
-  });
-  type TransactionWithRelations = (typeof transactions)[number];
+  })) as StreamTransaction[];
 
   const totalRevenue = transactions
-    .filter((t: TransactionWithRelations) => t.status === "COMPLETED")
+    .filter((t) => t.status === "COMPLETED")
     .reduce((sum, t) => sum + t.amount, 0);
 
   const statusCounts = transactions.reduce<Record<string, number>>(
-    (acc, t: TransactionWithRelations) => {
+    (acc, t) => {
       acc[t.status] = (acc[t.status] || 0) + 1;
       return acc;
     },
