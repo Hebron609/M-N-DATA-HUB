@@ -23,7 +23,7 @@ type Tx = {
   status: string;
   createdAt: string;
   reference: string | null;
-  product: { name: string; network: string };
+  product: { name: string; category: string };
   user: { name: string | null; email: string };
 };
 

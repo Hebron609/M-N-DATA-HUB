@@ -12,6 +12,7 @@ type Metrics = {
 
 type Tx = {
   id: string;
+  reference?: string | null;
   amount: number;
   status: string;
   createdAt: string;
