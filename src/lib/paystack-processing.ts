@@ -1,7 +1,15 @@
 import bcrypt from "bcryptjs";
-import { TransactionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { fulfillDataOrder } from "@/lib/data-fulfillment";
+
+type TransactionStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+const TransactionStatus = {
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+} as const;
 
 type PaystackCustomer = {
   email?: string;
