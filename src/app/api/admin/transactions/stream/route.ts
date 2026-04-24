@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/admin-auth";
+import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,14 @@ function toSSE(event: string, data: unknown) {
 }
 
 async function snapshot() {
-  const transactions = await prisma.transaction.findMany({
+  const transactions: Prisma.TransactionGetPayload<{
+    include: {
+      product: true;
+      user: {
+        select: { id: true; name: true; email: true };
+      };
+    };
+  }>[] = await prisma.transaction.findMany({
     take: 100,
     orderBy: { createdAt: "desc" },
     include: {

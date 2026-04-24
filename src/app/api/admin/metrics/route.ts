@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/admin-auth";
 
@@ -31,7 +32,9 @@ export async function GET() {
     }),
   ]);
 
-  const completed = transactions.filter((t) => t.status === "COMPLETED");
+  const completed: Prisma.TransactionGetPayload<{
+    include: { product: true; user: true };
+  }>[] = transactions.filter((t) => t.status === "COMPLETED");
   const totalRevenue = completed.reduce((sum, t) => sum + t.amount, 0);
   const estimatedProfit = completed.reduce((sum, t) => sum + t.amount * 0.1, 0);
   const totalOrders = transactions.length;
