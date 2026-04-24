@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/admin-auth";
-import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +10,7 @@ function toSSE(event: string, data: unknown) {
 }
 
 async function snapshot() {
-  const transactions: Prisma.TransactionGetPayload<{
-    include: {
-      product: true;
-      user: {
-        select: { id: true; name: true; email: true };
-      };
-    };
-  }>[] = await prisma.transaction.findMany({
+  const transactions = await prisma.transaction.findMany({
     take: 100,
     orderBy: { createdAt: "desc" },
     include: {
@@ -28,15 +20,19 @@ async function snapshot() {
       },
     },
   });
+  type TransactionWithRelations = (typeof transactions)[number];
 
   const totalRevenue = transactions
-    .filter((t) => t.status === "COMPLETED")
+    .filter((t: TransactionWithRelations) => t.status === "COMPLETED")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const statusCounts = transactions.reduce<Record<string, number>>((acc, t) => {
-    acc[t.status] = (acc[t.status] || 0) + 1;
-    return acc;
-  }, {});
+  const statusCounts = transactions.reduce<Record<string, number>>(
+    (acc, t: TransactionWithRelations) => {
+      acc[t.status] = (acc[t.status] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
   return {
     transactions,
