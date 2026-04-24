@@ -1,18 +1,14 @@
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-// Prisma 7 exposes the client through its CommonJS runtime entry in this build path.
-// Using require avoids the named-export mismatch that Vercel's type-checker hits here.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { PrismaClient } = require("@prisma/client") as typeof import(".prisma/client/index");
+const { PrismaClient } = require("@prisma/client");
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 
-type PrismaClientInstance = InstanceType<typeof PrismaClient>;
-
-const globalForPrisma = global as unknown as { prisma: PrismaClientInstance };
+const globalForPrisma = globalThis as unknown as { prisma: any };
 
 export const prisma =
   globalForPrisma.prisma ||
